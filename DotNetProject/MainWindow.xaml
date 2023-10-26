@@ -1,0 +1,23 @@
+﻿<Window x:Class="DotNetProject.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DotNetProject"
+        mc:Ignorable="d"
+        Title="Na svyazi" Height="300" Width="400">
+    <StackPanel Background="AliceBlue">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Label Content="Welcome to ''Na svyazi'' social network" Grid.Row="0" 
+                   Padding="5 10 5 10" HorizontalContentAlignment="Center" 
+                   FontWeight="Bold" FontSize="20" Foreground="White" Background="#45688E"/>
+            <Button Grid.Row="1"  Content="Sign Up" x:Name="SignUp_button" Click="SignUp_button_Click" Margin="5 10 5 10" FontSize="20"/>
+            <Button Grid.Row="2"  Content="Log In" x:Name="LogIn_Button" Click="LogIn_Button_Click" Margin="5 10 5 10" FontSize="20"/>
+        </Grid>
+    </StackPanel>
+</Window>

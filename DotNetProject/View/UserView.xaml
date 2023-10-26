@@ -1,0 +1,43 @@
+﻿<Window x:Class="DotNetProject.View.UserView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DotNetProject.View"
+        mc:Ignorable="d"
+        Loaded="Window_Loaded"
+        Closed="Window_Closed"
+        Title="UserView" Height="400" Width="450">
+    <StackPanel Orientation="Vertical" Background="AliceBlue">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Label Content="Na svyazi" x:Name="TitleLable" Grid.Row="0" HorizontalContentAlignment="Center"
+                Padding="5 10 5 10" Grid.ColumnSpan="2" VerticalAlignment="Center"
+                FontWeight="Bold" FontSize="20" Foreground="White" Background="#45688E"/>
+            <Label Content="Name" Grid.Row="1" FontSize="20"/>
+            <TextBox x:Name="nameTextBox" Grid.Row="1" Grid.Column="1" Margin="2 5 2 5" IsReadOnly="True" FontSize="20"/>
+            <Label Content="Surname" Grid.Row="2" FontSize="20"/>
+            <TextBox x:Name="surnameTextBox" Grid.Row="2" Grid.Column="1" Margin="2 5 2 5" IsReadOnly="True" FontSize="20"/>
+            <Label Content="Status" Grid.Row="3" FontSize="20"/>
+            <TextBox x:Name="statusTextBox" Grid.Row="3" Grid.Column="1" Margin="2 5 2 5" IsReadOnly="True" FontSize="20"/>
+            <Label Content="Avatar" Grid.Row="4" FontSize="20"/>
+            <TextBox x:Name="avatarTextBox" Grid.Row="4" Grid.Column="1" Margin="2 5 2 5" IsReadOnly="True" FontSize="20"/>
+            <Label Content="Gender" Grid.Row="5" FontSize="20"/>
+            <TextBox x:Name="genderTextBox" Grid.Row="5" Grid.Column="1" Margin="2 5 2 5" IsReadOnly="True" FontSize="20"/>
+            <Label Content="Date of birth" Grid.Row="6" FontSize="20"/>
+            <TextBox x:Name="birthdayTextBox" Grid.Row="6" Grid.Column="1" Margin="2 5 2 5" IsReadOnly="True" FontSize="20"/>
+        </Grid>
+    </StackPanel>
+</Window>

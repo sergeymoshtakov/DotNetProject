@@ -339,6 +339,7 @@ namespace DotNetProject
                     }
                     connection.Close();
                     await ShowMessages();
+                    messagesTextBox.Text = String.Empty;
                 }
                 else
                 {

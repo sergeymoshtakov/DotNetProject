@@ -30,7 +30,6 @@ namespace DotNetProject
     /// </summary>
     public partial class NetWorkWindow : Window
     {
-        private String? connectionString = App.connectionString;
         private Data.DataContext dataContext;
         private String userEmail;
         private List<NBURate> rates;
@@ -56,7 +55,7 @@ namespace DotNetProject
             InitializeComponent();
             this.userEmail = email;
             Pairs = new ObservableCollection<Pair>();
-            dataContext = new Data.DataContext();
+            dataContext = App.dataContext;
             UsersView = new ObservableCollection<Data.Entity.User>();
             this.DataContext = this;
         }
@@ -324,20 +323,16 @@ namespace DotNetProject
             {
                 if (messagesTextBox.Text != "")
                 {
-                    SqlConnection connection = new SqlConnection(connectionString);
-                    connection.Open();
-                    string query = "INSERT INTO [Messages] (Id, Content, SenderId, SendDT) " +
-                               "VALUES (@Id, @Content, @SenderId, @SendDT)";
-
-                    using (SqlCommand command = new SqlCommand(query, connection))
+                    Message newMessage = new Message
                     {
-                        command.Parameters.Add("@Id", SqlDbType.UniqueIdentifier).Value = Guid.NewGuid();
-                        command.Parameters.Add("@Content", SqlDbType.NVarChar).Value = messagesTextBox.Text;
-                        command.Parameters.Add("@SenderId", SqlDbType.UniqueIdentifier).Value = user.Id;
-                        command.Parameters.Add("@SendDT", SqlDbType.DateTime2).Value = DateTime.Now;
-                        command.ExecuteNonQuery();
-                    }
-                    connection.Close();
+                        Id = Guid.NewGuid(),
+                        Content = messagesTextBox.Text,
+                        SenderId = user.Id,
+                        SendDT = DateTime.Now
+                    };
+
+                    dataContext.Messages.Add(newMessage);
+                    dataContext.SaveChanges();
                     await ShowMessages();
                     messagesTextBox.Text = String.Empty;
                 }

@@ -12,7 +12,7 @@ namespace DotNetProject.Data.Entity
         public String Surname { get; set; } = null!;
         public String Name { get; set; } = null!;
         public String Email { get; set; } = null!;
-        public String Password { get; set; } = null!;
+        public String? Password { get; set; }
         public String? ConfirmationCode { get; set; }
         public String? Status { get; set; }
         public Guid? IdGender { get; set; }

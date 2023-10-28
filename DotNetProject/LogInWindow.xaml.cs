@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Net;
 using System.Net.Mail;
+using Microsoft.EntityFrameworkCore;
 
 namespace DotNetProject
 {
@@ -25,7 +26,6 @@ namespace DotNetProject
     public partial class LogInWindow : Window
     {
         private Data.DataContext dataContext;
-        private String? connectionString = App.connectionString;
         [DllImport("user32.dll")]
         public static extern int MessageBoxA(IntPtr hWnd, String lpText, String lpCaption, uint uType);
         public delegate void ThreadMethod();
@@ -41,7 +41,8 @@ namespace DotNetProject
         public LogInWindow()
         {
             InitializeComponent();
-            dataContext = new Data.DataContext();
+            dataContext = App.dataContext;
+            dataContext.Users.Load();
             this.DataContext = this;
         }
 
@@ -49,7 +50,7 @@ namespace DotNetProject
         {
             if (emailTextBox.Text != ""  && passwordTextBox.Text != "")
             {
-                var user = dataContext.Users.FirstOrDefault(u => u.Email == $"{emailTextBox.Text}");
+                var user = dataContext.Users.Where(u => u.Email == emailTextBox.Text).FirstOrDefault();
                 string password;
                 if(user != null)
                 {
@@ -74,14 +75,8 @@ namespace DotNetProject
                             if (result == MessageBoxResult.Yes)
                             {
                                 ConfirmContainer.Visibility = Visibility.Visible;
-                                using SqlConnection connection = new(connectionString);
-                                connection.Open();
                                 String code = Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
-                                using SqlCommand command = connection.CreateCommand();
-                                command.CommandText = $"UPDATE [Users] SET [ConfirmationCode] = N'{code}' " +
-                                        $"WHERE Email = '{emailTextBox.Text}'";
-                                command.ExecuteNonQuery();
-                                connection.Close();
+                                user.ConfirmationCode = code;
                                 SmtpClient? smtpClient = GetSmtpClient();
                                 MailMessage mailMessage = new(
                                     App.getConfiguration("smtp:email")!,
@@ -98,7 +93,8 @@ namespace DotNetProject
                     }
                     else
                     {
-                        setPassword();
+                        user.Password = passwordTextBox.Text;
+                        dataContext.SaveChanges();
                         TitleLable.Content = "Password resseted";
                     }
                 }
@@ -128,21 +124,20 @@ namespace DotNetProject
 
         private void ConfirmButton_Click(object sender, RoutedEventArgs e)
         {
-            using SqlConnection connection = new(connectionString);
-            connection.Open();
-            using SqlCommand command = connection.CreateCommand();
-            command.CommandText = "SELECT * FROM [Users] WHERE " +
-                $" [Email]=N'{emailTextBox.Text}' ";
-            using SqlDataReader reader = command.ExecuteReader();
-            if (reader.Read())
+            var user = dataContext.Users.Where(u => u.Email == emailTextBox.Text).FirstOrDefault();
+            if (user != null)
             {
-                if (!reader.IsDBNull("ConfirmationCode"))
+                if (user.ConfirmationCode != null)
                 {
-                    String code = reader.GetString("ConfirmationCode");
+                    String code = user.ConfirmationCode;
                     if (textboxCode.Text.Equals(code))
                     {
                         TitleLable.Content = "Write a new password";
-                        deletePassword();
+                        passwordTextBox.Text = "";
+                        passwordTextBox.Focus();
+                        textboxCode.Text = String.Empty;
+                        user.Password = null;
+                        dataContext.SaveChanges();
                         ConfirmContainer.Visibility = Visibility.Hidden;
                     }
                     else
@@ -155,29 +150,6 @@ namespace DotNetProject
             {
                 MessageBox.Show("Credentials incorrect");
             }
-            connection.Close();
-        }
-
-        private void deletePassword()
-        {
-            using SqlConnection connection = new(connectionString);
-            connection.Open();
-            using SqlCommand command = connection.CreateCommand();
-            command.CommandText = "UPDATE [Users] SET [Password] = NULL " +
-                    $"WHERE Email = '{emailTextBox.Text}'";
-            command.ExecuteNonQuery();
-            connection.Close();
-        }
-
-        private void setPassword()
-        {
-            using SqlConnection connection = new(connectionString);
-            connection.Open();
-            using SqlCommand command = connection.CreateCommand();
-            command.CommandText = $"UPDATE [Users] SET [Password] = N'{passwordTextBox.Text}' " +
-                    $"WHERE Email = '{emailTextBox.Text}'";
-            command.ExecuteNonQuery();
-            connection.Close();
         }
 
         private SmtpClient? GetSmtpClient()

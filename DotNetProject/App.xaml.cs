@@ -18,6 +18,7 @@ namespace DotNetProject
         private static JsonElement? settings = null;
         public static String? Host = getConfiguration("smtp:host");
         public static String? connectionString = getConfiguration("db:connectionstring");
+        public static Data.DataContext dataContext = new Data.DataContext();
         public static String? getConfiguration(String name)
         {
             if (settings == null)

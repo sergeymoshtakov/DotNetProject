@@ -1,4 +1,6 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using DotNetProject.Data.Entity;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -27,7 +29,7 @@ namespace DotNetProject
     /// </summary>
     public partial class RegestrationWindow : Window
     {
-        private String? connectionString = App.connectionString;
+        private Data.DataContext dataContext;
         [DllImport("user32.dll")]
         public static extern int MessageBoxA(IntPtr hWnd, String lpText, String lpCaption, uint uType);
         public delegate void ThreadMethod();
@@ -43,6 +45,9 @@ namespace DotNetProject
         public RegestrationWindow()
         {
             InitializeComponent();
+            dataContext = App.dataContext;
+            dataContext.Users.Load();
+            this.DataContext = this;
         }
 
         private void CreateAccount_button_Click(object sender, RoutedEventArgs e)
@@ -52,25 +57,22 @@ namespace DotNetProject
                 bool isValid = IsValidEmail(emailTextBox.Text);
                 if (isValid)
                 {
-                    SqlConnection connection = new SqlConnection(connectionString);
-                    connection.Open();
                     String code = Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
 
-                    string query = "INSERT INTO [Users] (Id, Name, Surname, Email, Password, ConfirmationCode, CreateDT, Birthday) " +
-                           "VALUES (@Id, @Name, @Surname, @Email, @Password, @ConfirmationCode, @CreateDT, @Birthday)";
-
-                    using (SqlCommand command = new SqlCommand(query, connection))
+                    User newUser = new User
                     {
-                        command.Parameters.Add("@Id", SqlDbType.UniqueIdentifier).Value = Guid.NewGuid();
-                        command.Parameters.Add("@Name", SqlDbType.NVarChar).Value = nameTextBox.Text;
-                        command.Parameters.Add("@Surname", SqlDbType.NVarChar).Value = surnnameTextBox.Text;
-                        command.Parameters.Add("@Email", SqlDbType.NVarChar).Value = emailTextBox.Text;
-                        command.Parameters.Add("@Password", SqlDbType.NVarChar).Value = passwordTextBox.Text;
-                        command.Parameters.Add("@ConfirmationCode", SqlDbType.NVarChar).Value = code;
-                        command.Parameters.Add("@CreateDT", SqlDbType.DateTime2).Value = DateTime.Now;
-                        command.Parameters.Add("@Birthday", SqlDbType.DateTime2).Value = DateTime.Now;
-                        command.ExecuteNonQuery();
-                    }
+                        Id = Guid.NewGuid(),
+                        Name = nameTextBox.Text,
+                        Surname = surnnameTextBox.Text,
+                        Email = emailTextBox.Text,
+                        Password = passwordTextBox.Text,
+                        ConfirmationCode = code,
+                        CreateDt = DateTime.Now,
+                        Birthday = DateTime.Now
+                    };
+
+                    dataContext.Users.Add(newUser);
+                    dataContext.SaveChanges();
 
                     SmtpClient? smtpClient = GetSmtpClient();
                     MailMessage mailMessage = new(
@@ -84,7 +86,6 @@ namespace DotNetProject
                     smtpClient?.Send(mailMessage);
                     MessageBox.Show("Chek Email");
                     ConfirmContainer.Visibility = Visibility.Visible;
-                    connection.Close();
                 }
                 else
                 {
@@ -168,22 +169,17 @@ namespace DotNetProject
 
         private void ConfirmButton_Click(object sender, RoutedEventArgs e)
         {
-            using SqlConnection connection = new(connectionString);
-            connection.Open();
-            using SqlCommand command = connection.CreateCommand();
-            command.CommandText = "SELECT * FROM [Users] WHERE " +
-                $" [Email]=N'{emailTextBox.Text}' " +
-                $" AND [Password]=N'{passwordTextBox.Text}' ";
-            using SqlDataReader reader = command.ExecuteReader();
-            if (reader.Read())
+            var user = dataContext.Users.Where(u => u.Email == emailTextBox.Text && u.Password == passwordTextBox.Text).FirstOrDefault();
+            if (user != null)
             {
-                if (!reader.IsDBNull("ConfirmationCode")) 
+                if (user.ConfirmationCode != null) 
                 {
-                    String code = reader.GetString("ConfirmationCode");
+                    String code = user.ConfirmationCode;
                     if (textboxCode.Text.Equals(code))
                     {
                         TitleLable.Content = "Email  confirmed\n";
-                        deleteConfirmationCode();
+                        user.ConfirmationCode = null;
+                        dataContext.SaveChanges();
                         ConfirmContainer.Visibility = Visibility.Hidden;
                         CreateAccount_button.Visibility = Visibility.Hidden;
                         LogIn_button.Visibility = Visibility.Visible;
@@ -198,18 +194,6 @@ namespace DotNetProject
             {
                 MessageBox.Show("Credentials incorrect");
             }
-            connection.Close();
-        }
-
-        private void deleteConfirmationCode()
-        {
-            using SqlConnection connection = new(connectionString);
-            connection.Open();
-            using SqlCommand command = connection.CreateCommand();
-            command.CommandText = "UPDATE [Users] SET [ConfirmationCode] = NULL " +
-                    $"WHERE Email = '{emailTextBox.Text}'";
-            command.ExecuteNonQuery();
-            connection.Close();
         }
 
         private void LogIn_button_Click(object sender, RoutedEventArgs e)

@@ -34,6 +34,7 @@ namespace DotNetProject
         private String userEmail;
         private List<NBURate> rates;
         private string[] popularCc = { "CHF", "USD", "EUR", "JPY", "CNY" };
+        private WeatherForecast weatherForecast;
         public ObservableCollection<Pair> Pairs { get; set; }
         public List<Data.Entity.Message> MessagesView { get; set; }
         public ObservableCollection<Data.Entity.User> UsersView { get; set; }
@@ -58,6 +59,7 @@ namespace DotNetProject
             dataContext = App.dataContext;
             UsersView = new ObservableCollection<Data.Entity.User>();
             this.DataContext = this;
+            weatherForecast = new WeatherForecast();
         }
         private void myProfileButton_Click(object sender, RoutedEventArgs e)
         {
@@ -369,6 +371,28 @@ namespace DotNetProject
             }
         }
         GCHandle methodHandle;
+
+        private void searchForecast_Click(object sender, RoutedEventArgs e)
+        {
+            if (cityName.Text != null)
+            {
+                string city = cityName.Text;
+                WeatherData weatherData = weatherForecast.GetWeatherData(city);
+                weatherForecastBlock.Text = "";
+                string forecastText = $"Feather forecast for city {city}:\n";
+                weatherForecastBlock.Text += forecastText;
+                weatherForecastBlock.Text += "Temperature: " + weatherData.Current.Temp_c.ToString() + "\n";
+                weatherForecastBlock.Text += "Humidity: " + weatherData.Current.Humidity.ToString() + "\n";
+                weatherForecastBlock.Text += "Wind speed: " + weatherData.Current.Wind_mph.ToString() + "\n";
+                weatherForecastBlock.Text += "Local time: " + weatherData.Location.Localtime + "\n";
+                weatherForecastBlock.Text += "Condition: " + weatherData.Current.Condition.Text + "\n";
+            }
+            else
+            {
+                weatherForecastBlock.Text = "";
+                weatherForecastBlock.Text = "Enter city first";
+            }
+        }
     }
     public class Pair
     {
